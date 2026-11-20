@@ -8,7 +8,8 @@ describe('ibinola-1021 ClaimRedemptionProvider webhook trigger counts (standalon
   type Outcome = 'completed' | 'failed';
 
   function createWebhookRecorder() {
-    const calls: Array<{ event: string; payload: Record<string, unknown> }> = [];
+    const calls: Array<{ event: string; payload: Record<string, unknown> }> =
+      [];
     return {
       triggerEvent: async (event: string, payload: Record<string, unknown>) => {
         calls.push({ event, payload });
@@ -17,34 +18,53 @@ describe('ibinola-1021 ClaimRedemptionProvider webhook trigger counts (standalon
     };
   }
 
-  async function simulateRedemptionOutcome(outcome: Outcome, webhooks: ReturnType<typeof createWebhookRecorder>) {
+  async function simulateRedemptionOutcome(
+    outcome: Outcome,
+    webhooks: ReturnType<typeof createWebhookRecorder>,
+  ) {
     // Mirrors the intended invariant: exactly one terminal sweep webhook per redemption.
     if (outcome === 'completed') {
-      await webhooks.triggerEvent('sweep.completed', { accountId: 'acct', txHash: 'tx' });
+      await webhooks.triggerEvent('sweep.completed', {
+        accountId: 'acct',
+        txHash: 'tx',
+      });
       return;
     }
-    await webhooks.triggerEvent('sweep.failed', { accountId: 'acct', error: 'boom' });
+    await webhooks.triggerEvent('sweep.failed', {
+      accountId: 'acct',
+      error: 'boom',
+    });
   }
 
   it('fires sweep.completed exactly once for a successful redemption and never sweep.failed', async () => {
     const webhooks = createWebhookRecorder();
     await simulateRedemptionOutcome('completed', webhooks);
-    expect(webhooks.calls.filter((c) => c.event === 'sweep.completed')).toHaveLength(1);
-    expect(webhooks.calls.filter((c) => c.event === 'sweep.failed')).toHaveLength(0);
+    expect(
+      webhooks.calls.filter((c) => c.event === 'sweep.completed'),
+    ).toHaveLength(1);
+    expect(
+      webhooks.calls.filter((c) => c.event === 'sweep.failed'),
+    ).toHaveLength(0);
   });
 
   it('fires sweep.failed exactly once for a failed redemption and never sweep.completed', async () => {
     const webhooks = createWebhookRecorder();
     await simulateRedemptionOutcome('failed', webhooks);
-    expect(webhooks.calls.filter((c) => c.event === 'sweep.failed')).toHaveLength(1);
-    expect(webhooks.calls.filter((c) => c.event === 'sweep.completed')).toHaveLength(0);
+    expect(
+      webhooks.calls.filter((c) => c.event === 'sweep.failed'),
+    ).toHaveLength(1);
+    expect(
+      webhooks.calls.filter((c) => c.event === 'sweep.completed'),
+    ).toHaveLength(0);
   });
 
   it('never emits both terminal sweep outcomes for a single redemption attempt', async () => {
     for (const outcome of ['completed', 'failed'] as const) {
       const webhooks = createWebhookRecorder();
       await simulateRedemptionOutcome(outcome, webhooks);
-      const terminal = webhooks.calls.filter((c) => c.event === 'sweep.completed' || c.event === 'sweep.failed');
+      const terminal = webhooks.calls.filter(
+        (c) => c.event === 'sweep.completed' || c.event === 'sweep.failed',
+      );
       expect(terminal).toHaveLength(1);
     }
   });

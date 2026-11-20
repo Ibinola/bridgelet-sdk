@@ -24,16 +24,27 @@ function utf8Bytes(value: unknown): number {
 
 function depthOf(value: unknown, current = 1): number {
   if (value === null || typeof value !== 'object') return current;
-  if (Array.isArray(value)) return value.reduce((m, v) => Math.max(m, depthOf(v, current + 1)), current + 1);
+  if (Array.isArray(value))
+    return value.reduce(
+      (m, v) => Math.max(m, depthOf(v, current + 1)),
+      current + 1,
+    );
   const vals = Object.values(value as Record<string, unknown>);
   if (vals.length === 0) return current + 1;
-  return vals.reduce((m, v) => Math.max(m, depthOf(v, current + 1)), current + 1);
+  return vals.reduce(
+    (m, v) => Math.max(m, depthOf(v, current + 1)),
+    current + 1,
+  );
 }
 
-function violatesBounds(metadata: Record<string, unknown>, rules = EXPECTED_RULES): string | null {
+function violatesBounds(
+  metadata: Record<string, unknown>,
+  rules = EXPECTED_RULES,
+): string | null {
   if (utf8Bytes(metadata) > rules.maxBytes) return 'size';
   if (Object.keys(metadata).length > rules.maxKeys) return 'keys';
-  if (Object.keys(metadata).some((k) => k.length > rules.maxKeyLength)) return 'keyLength';
+  if (Object.keys(metadata).some((k) => k.length > rules.maxKeyLength))
+    return 'keyLength';
   if (depthOf(metadata) > rules.maxDepth + 1) return 'depth';
   return null;
 }

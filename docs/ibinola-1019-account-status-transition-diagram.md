@@ -3,6 +3,7 @@
 Standalone documentation helper for issue #1019: a single-place state-transition diagram for `AccountStatus` lifecycle values, including `INITIALIZING`, `CLAIMING`, and `PARTIAL_SWEEP`.
 
 ## States
+
 - `INITIALIZING`
 - `PENDING_PAYMENT`
 - `PENDING_CLAIM`
@@ -47,6 +48,7 @@ Terminal: CLAIMED, EXPIRED, FAILED (no outgoing transitions)
 ```
 
 ## Notes
+
 - `AccountStatus` values were introduced over multiple migrations (`INITIALIZING`, `CLAIMING`, `PARTIAL_SWEEP` added later); this diagram consolidates the lifecycle in one place.
 - Code-level enforcement should be treated as authoritative (`ACCOUNT_STATUS_TRANSITIONS` in `src/modules/accounts/enums/account-status-transition.util.ts`), with conditional updates/row locks providing concurrency guarantees.
 - This standalone document is intended to complement `docs/database-schema.md` for integrators and reviewers.
